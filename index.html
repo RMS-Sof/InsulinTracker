@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insulin Intake Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 0 10px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #flashMessage {
+            margin: 10px 0;
+            color: #333;
+            font-weight: bold;
+        }
+        #dailyReport {
+            margin-top: 20px;
+            text-align: left;
+        }
+        #dailyReport h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        #dailyReport ul {
+            list-style: none;
+            padding: 0;
+        }
+        #dailyReport li {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <h1>Insulin Intake Tracker</h1>
+    <button onclick="recordIntake()">Insulin Intake</button>
+    <div id="flashMessage"></div>
+    <div id="dailyReport">
+        <h2>Daily Report</h2>
+        <ul id="reportList"></ul>
+    </div>
+
+    <script>
+        // Initialize or load data from localStorage
+        let intakeData = JSON.parse(localStorage.getItem('insulinIntake')) || {};
+
+        // Function to record insulin intake
+        function recordIntake() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+            const timeStr = now.toLocaleTimeString();
+
+            // Initialize or increment counter for the date
+            if (!intakeData[dateStr]) {
+                intakeData[dateStr] = { count: 0, times: [] };
+            }
+            intakeData[dateStr].count += 1;
+            intakeData[dateStr].times.push(timeStr);
+
+            // Save to localStorage
+            localStorage.setItem('insulinIntake', JSON.stringify(intakeData));
+
+            // Show flash message
+            const flashMessage = document.getElementById('flashMessage');
+            flashMessage.textContent = `Intake recorded! Today's count: ${intakeData[dateStr].count}`;
+            flashMessage.style.display = 'block';
+            setTimeout(() => {
+                flashMessage.style.display = 'none';
+            }, 3000);
+
+            // Update daily report
+            updateDailyReport();
+        }
+
+        // Function to update daily report
+        function updateDailyReport() {
+            const reportList = document.getElementById('reportList');
+            reportList.innerHTML = '';
+
+            // Sort dates in descending order
+            const sortedDates = Object.keys(intakeData).sort((a, b) => new Date(b) - new Date(a));
+
+            // Generate report
+            sortedDates.forEach(date => {
+                const li = document.createElement('li');
+                const times = intakeData[date].times.join(', ');
+                li.textContent = `${date}: ${intakeData[date].count} intake(s) at ${times}`;
+                reportList.appendChild(li);
+            });
+        }
+
+        // Load daily report on page load
+        window.onload = updateDailyReport;
+    </script>
+</body>
+</html>
